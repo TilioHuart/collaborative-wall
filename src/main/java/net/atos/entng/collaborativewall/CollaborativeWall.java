@@ -19,6 +19,7 @@
 
 package net.atos.entng.collaborativewall;
 
+import io.vertx.core.Promise;
 import net.atos.entng.collaborativewall.controllers.CollaborativeWallController;
 import net.atos.entng.collaborativewall.events.CollaborativeWallSearchingEvents;
 import net.atos.entng.collaborativewall.service.CollaborativeWallRepositoryEvents;
@@ -45,8 +46,8 @@ public class CollaborativeWall extends BaseServer {
      * Entry point of the Vert.x module
      */
     @Override
-    public void start() throws Exception {
-        super.start();
+    public void start(Promise<Void> startPromise) throws Exception {
+        super.start(startPromise);
         setRepositoryEvents(new CollaborativeWallRepositoryEvents(vertx));
         if (config.getBoolean("searching-event", true)) {
             setSearchingEvents(new CollaborativeWallSearchingEvents(new MongoDbSearchService(COLLABORATIVE_WALL_COLLECTION)));
