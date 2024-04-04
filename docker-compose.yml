@@ -9,12 +9,12 @@ services:
     environment:
       MAVEN_CONFIG: /var/maven/.m2
 
-node:
-  image: opendigitaleducation/node:10-alpine
-  working_dir: /home/node/app
-  volumes:
-    - ./:/home/node/app
-    - ~/.npm:/.npm
-      #    - ~/.npmrc:/home/node/.npmrc
-      #    - ~/.bowerrc:/home/node/.bowerrc
-      #    - ~/.gitconfig:/home/node/.gitconfig
+  node:
+    image: opendigitaleducation/node:10-alpine
+    working_dir: /home/node/app
+    volumes:
+      - ./:/home/node/app
+      - ~/.npm:/.npm
+        #    - ~/.npmrc:/home/node/.npmrc
+        #    - ~/.bowerrc:/home/node/.bowerrc
+        #    - ~/.gitconfig:/home/node/.gitconfig
