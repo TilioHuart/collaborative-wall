@@ -21,9 +21,9 @@ package net.atos.entng.collaborativewall.service;
 
 import fr.wseduc.mongodb.MongoDb;
 import io.vertx.core.Vertx;
-import com.mongodb.QueryBuilder;
 import fr.wseduc.mongodb.MongoQueryBuilder;
 import io.vertx.core.eventbus.Message;
+import org.bson.conversions.Bson;
 import org.entcore.common.service.impl.MongoDbRepositoryEvents;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
@@ -33,6 +33,9 @@ import net.atos.entng.collaborativewall.CollaborativeWall;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+
+import static com.mongodb.client.model.Filters.*;
+
 
 public class CollaborativeWallRepositoryEvents extends MongoDbRepositoryEvents {
 
@@ -49,12 +52,12 @@ public class CollaborativeWallRepositoryEvents extends MongoDbRepositoryEvents {
     public void exportResources(JsonArray resourcesIds, boolean exportDocuments, boolean exportSharedResources, String exportId, String userId,
                                 JsonArray groups, String exportPath, String locale, String host, Handler<Boolean> handler)
     {
-        QueryBuilder findByAuthor = QueryBuilder.start("owner.userId").is(userId);
-        QueryBuilder findByShared = QueryBuilder.start().or(
-            QueryBuilder.start("shared.userId").is(userId).get(),
-            QueryBuilder.start("shared.groupId").in(groups).get()
+        Bson findByAuthor = eq("owner.userId", userId);
+        Bson findByShared = or(
+            eq("shared.userId", userId),
+            in("shared.groupId", groups)
         );
-        QueryBuilder findByAuthorOrShared = exportSharedResources == false ? findByAuthor : QueryBuilder.start().or(findByAuthor.get(),findByShared.get());
+        Bson findByAuthorOrShared = exportSharedResources == false ? findByAuthor : or(findByAuthor,findByShared);
 
         JsonObject query;
 
@@ -62,9 +65,7 @@ public class CollaborativeWallRepositoryEvents extends MongoDbRepositoryEvents {
             query = MongoQueryBuilder.build(findByAuthorOrShared);
         else
         {
-            QueryBuilder limitToResources = findByAuthorOrShared.and(
-                QueryBuilder.start("_id").in(resourcesIds).get()
-            );
+            Bson limitToResources = and(findByAuthorOrShared, in("_id", resourcesIds));
             query = MongoQueryBuilder.build(limitToResources);
         }
 
@@ -87,7 +88,7 @@ public class CollaborativeWallRepositoryEvents extends MongoDbRepositoryEvents {
                     });
 
                     final Set<String> ids = results.stream().map(res -> ((JsonObject)res).getString("_id")).collect(Collectors.toSet());
-                    QueryBuilder findByWallId = QueryBuilder.start("idwall").in(ids);
+                    Bson findByWallId = in("idwall", ids);
                     JsonObject query2 = MongoQueryBuilder.build(findByWallId);
 
                     mongo.find(CollaborativeWall.COLLABORATIVE_WALL_NOTES_COLLECTION, query2, new Handler<Message<JsonObject>>()
